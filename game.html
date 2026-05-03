@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cerdas Cermat</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Exo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c8860a;
+    --gold-light: #f0b429;
+    --gold-glow: #ffd700;
+    --brown-dark: #1a0e00;
+    --brown-mid: #2d1a00;
+    --brown-glass: rgba(30, 15, 0, 0.75);
+    --brown-glass2: rgba(20, 10, 0, 0.85);
+    --text-main: #fff8e7;
+    --text-gold: #ffd700;
+    --correct: #22c55e;
+    --wrong: #ef4444;
+    --timer-full: #f0b429;
+    --timer-low: #ef4444;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    font-family: 'Exo 2', sans-serif;
+    color: var(--text-main);
+    background: var(--brown-dark);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .bg-image {
+    position: fixed;
+    inset: 0;
+    background: url('https://assets.pikiran-rakyat.com/crop/0x0:0x0/720x0/filters:watermark(file/2017/cms/img/watermark.png,-0,0,0)/photo/2024/12/13/39072962.jpg') center/cover no-repeat;
+    z-index: 0;
+    filter: brightness(0.38) saturate(0.7);
+  }
+  .bg-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(26,10,0,0.72) 0%, rgba(10,5,0,0.82) 100%);
+    z-index: 1;
+  }
+
+  #app { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* === HEADER === */
+  header {
+    text-align: center;
+    padding: 18px 16px 10px;
+    position: relative;
+  }
+  header h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 5vw, 3.2rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--gold-glow);
+    text-shadow:
+      0 0 12px #ffd70099,
+      0 0 30px #c8860a88,
+      0 0 60px #c8860a44,
+      2px 2px 0 #7a4a00;
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+  header .subtitle {
+    font-size: 0.78rem;
+    letter-spacing: 0.35em;
+    color: var(--gold);
+    opacity: 0.85;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  @keyframes titlePulse {
+    0%,100% { text-shadow: 0 0 12px #ffd70099,0 0 30px #c8860a88,0 0 60px #c8860a44,2px 2px 0 #7a4a00; }
+    50% { text-shadow: 0 0 24px #ffd700cc,0 0 50px #c8860acc,0 0 90px #c8860a66,2px 2px 0 #7a4a00; }
+  }
+
+  /* === MAIN LAYOUT === */
+  .main-area {
+    display: flex;
+    flex: 1;
+    gap: 14px;
+    padding: 10px 12px 16px;
+    align-items: flex-start;
+  }
+
+  /* === LEADERBOARD === */
+  .leaderboard {
+    min-width: 150px;
+    max-width: 190px;
+    width: 100%;
+    background: var(--brown-glass2);
+    border: 1.5px solid var(--gold);
+    border-radius: 14px;
+    padding: 12px 10px;
+    box-shadow: 0 0 18px #c8860a55, inset 0 0 10px rgba(200,134,10,0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    flex-shrink: 0;
+  }
+  .leaderboard h3 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    color: var(--gold-glow);
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-shadow: 0 0 8px #ffd70077;
+  }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    background: rgba(200,134,10,0.07);
+    border: 1px solid rgba(200,134,10,0.18);
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .lb-row.rank-1 { background: rgba(255,215,0,0.13); border-color: var(--gold-glow); }
+  .lb-row .lb-rank { font-size: 0.7rem; color: var(--gold); font-weight: 700; width: 18px; }
+  .lb-row .lb-name { font-size: 0.72rem; font-weight: 600; flex: 1; margin: 0 5px; color: var(--text-main); }
+  .lb-row .lb-score {
+    font-size: 0.8rem; font-weight: 800;
+    color: var(--gold-glow);
+    text-shadow: 0 0 8px #ffd70088;
+    min-width: 32px;
+    text-align: right;
+  }
+  .lb-row.active-group { box-shadow: 0 0 10px var(--gold), inset 0 0 6px rgba(255,215,0,0.15); }
+
+  /* === QUIZ AREA === */
+  .quiz-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-bar-bg {
+    flex: 1; height: 6px;
+    background: rgba(200,134,10,0.18);
+    border-radius: 99px;
+    overflow: hidden;
+    border: 1px solid rgba(200,134,10,0.3);
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-glow));
+    border-radius: 99px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px var(--gold-light);
+  }
+  .progress-label { font-size: 0.7rem; color: var(--gold); font-weight: 700; white-space: nowrap; }
+
+  /* TIMER */
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 0 auto;
+  }
+  .timer-ring {
+    position: relative;
+    width: 72px; height: 72px;
+  }
+  .timer-ring svg {
+    position: absolute; top: 0; left: 0;
+    transform: rotate(-90deg);
+  }
+  .timer-ring .bg-circle { fill: none; stroke: rgba(200,134,10,0.2); stroke-width: 6; }
+  .timer-ring .fg-circle {
+    fill: none; stroke: var(--timer-full); stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 196;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s;
+    filter: drop-shadow(0 0 6px var(--gold));
+  }
+  .timer-number {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-weight: 800; color: var(--gold-glow);
+    text-shadow: 0 0 10px var(--gold);
+  }
+  .timer-label {
+    font-size: 0.62rem; letter-spacing: 0.25em;
+    color: var(--gold); opacity: 0.75; text-transform: uppercase;
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--brown-glass);
+    border: 1.5px solid var(--gold);
+    border-radius: 18px;
+    padding: 22px 22px 18px;
+    box-shadow: 0 0 24px #c8860a44, inset 0 0 14px rgba(200,134,10,0.05);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    animation: cardIn 0.45s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(22px) scale(0.97); }
+    to { opacity:1; transform: translateY(0) scale(1); }
+  }
+  .question-number {
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
+    opacity: 0.8;
+  }
+  .question-text {
+    font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+    font-weight: 700;
+    line-height: 1.55;
+    color: var(--text-main);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  }
+
+  /* ANSWER OPTIONS */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 500px) { .options-grid { grid-template-columns: 1fr; } }
+
+  .option-btn {
+    background: rgba(30,15,0,0.7);
+    border: 1.5px solid rgba(200,134,10,0.35);
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: clamp(0.82rem, 2vw, 0.95rem);
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option-btn .opt-letter {
+    width: 26px; height: 26px; flex-shrink: 0;
+    background: rgba(200,134,10,0.18);
+    border: 1px solid rgba(200,134,10,0.4);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800; color: var(--gold);
+    transition: all 0.25s;
+  }
+  .option-btn:not(:disabled):hover {
+    border-color: var(--gold-glow);
+    background: rgba(200,134,10,0.15);
+    box-shadow: 0 0 16px rgba(200,134,10,0.35);
+    transform: translateY(-2px);
+  }
+  .option-btn:not(:disabled):hover .opt-letter {
+    background: var(--gold);
+    color: var(--brown-dark);
+  }
+  .option-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+  .option-btn.correct {
+    border-color: var(--correct) !important;
+    background: rgba(34,197,94,0.2) !important;
+    box-shadow: 0 0 20px rgba(34,197,94,0.4) !important;
+    opacity: 1 !important;
+    animation: correctPulse 0.5s ease;
+  }
+  .option-btn.wrong {
+    border-color: var(--wrong) !important;
+    background: rgba(239,68,68,0.2) !important;
+    box-shadow: 0 0 20px rgba(239,68,68,0.35) !important;
+    opacity: 1 !important;
+    animation: shake 0.4s ease;
+  }
+  @keyframes correctPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* === POPUPS === */
+  .overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+    padding: 16px;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .popup {
+    background: linear-gradient(145deg, rgba(35,18,2,0.96), rgba(20,10,0,0.98));
+    border: 1.5px solid var(--gold);
+    border-radius: 22px;
+    padding: 28px 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 0 40px #c8860a66, 0 0 80px #c8860a22, inset 0 0 20px rgba(200,134,10,0.06);
+    animation: popIn 0.4s cubic-bezier(.22,1,.36,1);
+    position: relative;
+    overflow: hidden;
+  }
+  .popup::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
+    opacity: 0.8;
+  }
+  @keyframes popIn {
+    from { opacity:0; transform:scale(0.88) translateY(20px); }
+    to { opacity:1; transform:scale(1) translateY(0); }
+  }
+  .popup h2 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1rem, 3vw, 1.35rem);
+    color: var(--gold-glow);
+    text-align: center;
+    text-shadow: 0 0 18px #ffd70088;
+    margin-bottom: 8px;
+  }
+  .popup p {
+    font-size: 0.88rem; color: var(--text-main); opacity: 0.85;
+    text-align: center; line-height: 1.55; margin-bottom: 20px;
+  }
+  .popup .gold-divider {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 12px auto 16px;
+    border-radius: 99px;
+  }
+
+  /* BUTTONS */
+  .btn-gold {
+    display: block; width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #c8860a, #f0b429, #c8860a);
+    background-size: 200% 100%;
+    border: none; border-radius: 10px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem; font-weight: 800;
+    color: var(--brown-dark);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    box-shadow: 0 0 16px rgba(200,134,10,0.45);
+    animation: btnShine 2.5s ease infinite;
+  }
+  @keyframes btnShine {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 28px rgba(200,134,10,0.7), 0 6px 20px rgba(0,0,0,0.4);
+  }
+  .btn-gold:active { transform: translateY(0); }
+
+  /* Group buttons */
+  .group-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .btn-group {
+    padding: 11px 8px;
+    background: rgba(200,134,10,0.1);
+    border: 1.5px solid rgba(200,134,10,0.4);
+    border-radius: 10px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.82rem; font-weight: 700;
+    color: var(--gold-light);
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+  }
+  .btn-group:hover {
+    background: rgba(200,134,10,0.25);
+    border-color: var(--gold-glow);
+    color: var(--gold-glow);
+    box-shadow: 0 0 12px rgba(200,134,10,0.35);
+    transform: translateY(-2px);
+  }
+
+  /* End popup */
+  .winner-badge {
+    text-align: center;
+    margin: 14px 0;
+  }
+  .winner-crown {
+    font-size: 2.5rem;
+    animation: crownBounce 1s ease infinite;
+  }
+  @keyframes crownBounce {
+    0%,100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+  }
+  .winner-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.3rem;
+    color: var(--gold-glow);
+    text-shadow: 0 0 20px #ffd700aa;
+    margin-top: 4px;
+  }
+  .winner-score { font-size: 0.9rem; color: var(--gold); margin-top: 2px; }
+
+  .final-lb { margin: 12px 0; }
+  .final-lb-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    border: 1px solid rgba(200,134,10,0.2);
+    background: rgba(200,134,10,0.06);
+  }
+  .final-lb-row.first { background: rgba(255,215,0,0.12); border-color: var(--gold-glow); }
+  .final-lb-row .fl-rank { color: var(--gold); font-weight: 800; width: 24px; font-size: 0.85rem; }
+  .final-lb-row .fl-name { flex:1; font-weight: 600; font-size: 0.88rem; margin: 0 8px; }
+  .final-lb-row .fl-score { color: var(--gold-glow); font-weight: 800; font-size: 0.95rem; text-shadow: 0 0 8px #ffd70066; }
+
+  /* CONFETTI */
+  .confetti-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+  .confetto {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
+  }
+
+  /* Score flash */
+  .score-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 300;
+    animation: flashOut 1.2s ease forwards;
+  }
+  .score-flash.plus { color: var(--correct); text-shadow: 0 0 30px rgba(34,197,94,0.8); }
+  .score-flash.minus { color: var(--wrong); text-shadow: 0 0 30px rgba(239,68,68,0.8); }
+  @keyframes flashOut {
+    0% { opacity:1; transform:translate(-50%,-50%) scale(0.8); }
+    30% { opacity:1; transform:translate(-50%,-80%) scale(1.2); }
+    100% { opacity:0; transform:translate(-50%,-130%) scale(1); }
+  }
+
+  /* Locked indicator */
+  .locked-msg {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-top: 2px;
+    letter-spacing: 0.1em;
+    animation: blinkSlow 2s ease infinite;
+  }
+  @keyframes blinkSlow {
+    0%,100% { opacity:0.4; }
+    50% { opacity:0.8; }
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .main-area { flex-direction: column; }
+    .leaderboard { max-width: 100%; order: -1; }
+    .lb-row { display: flex; }
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="bg-image"></div>
+<div class="bg-overlay"></div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<div id="app">
+  <header>
+    <h1>⚡ CERDAS CERMAT ⚡</h1>
+    <div class="subtitle">Kompetisi Pengetahuan Antar Kelompok</div>
+  </header>
+
+  <div class="main-area">
+    <!-- LEADERBOARD -->
+    <div class="leaderboard">
+      <h3>🏆 Papan Skor</h3>
+      <div id="leaderboard"></div>
+    </div>
+
+    <!-- QUIZ AREA -->
+    <div class="quiz-area">
+      <!-- Progress -->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">0 / 10</div>
+      </div>
+
+      <!-- Timer -->
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg viewBox="0 0 72 72" width="72" height="72">
+            <circle class="bg-circle" cx="36" cy="36" r="31"/>
+            <circle class="fg-circle" id="timerCircle" cx="36" cy="36" r="31"/>
+          </svg>
+          <div class="timer-number" id="timerNumber">10</div>
+        </div>
+        <div class="timer-label">detik</div>
+      </div>
+
+      <!-- Question -->
+      <div class="question-card" id="questionCard">
+        <div class="question-number" id="questionNumber">Soal 1 dari 10</div>
+        <div class="question-text" id="questionText">Memuat soal...</div>
+      </div>
+
+      <!-- Options -->
+      <div class="options-grid" id="optionsGrid"></div>
+      <div class="locked-msg" id="lockedMsg">⏳ Tunggu countdown selesai...</div>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP: WELCOME -->
+<div class="overlay" id="popupWelcome">
+  <div class="popup">
+    <h2>⚡ CERDAS CERMAT ⚡</h2>
+    <div class="gold-divider"></div>
+    <p>
+      Selamat datang! Sebelum memulai, pastikan<br>
+      <strong style="color:var(--gold-glow)">5 kelompok</strong> sudah siap.<br>
+      <span style="font-size:0.8rem;opacity:0.7">(Setiap kelompok berjumlah 5 orang)</span>
+    </p>
+    <p style="font-size:0.8rem;opacity:0.6;margin-bottom:10px">
+      📌 Timer 10 detik akan berjalan sebelum kelompok boleh menjawab.<br>
+      ✅ Benar: <strong style="color:var(--correct)">+10 poin</strong> &nbsp;|&nbsp; ❌ Salah: <strong style="color:var(--wrong)">-5 poin</strong>
+    </p>
+    <button class="btn-gold" onclick="startQuiz()">🚀 MULAI KUIS</button>
+  </div>
+</div>
+
+<!-- POPUP: PILIH KELOMPOK -->
+<div class="overlay hidden" id="popupGroup">
+  <div class="popup">
+    <h2>🙋 Siapa yang Menjawab?</h2>
+    <div class="gold-divider"></div>
+    <p>Waktu habis! Pilih kelompok yang akan menjawab:</p>
+    <div class="group-grid" id="groupButtons"></div>
+  </div>
+</div>
+
+<!-- POPUP: AKHIR KUIS -->
+<div class="overlay hidden" id="popupEnd">
+  <div class="popup">
+    <h2>🏁 Kuis Selesai!</h2>
+    <div class="gold-divider"></div>
+    <div class="winner-badge">
+      <div class="winner-crown">👑</div>
+      <div class="winner-name" id="winnerName"></div>
+      <div class="winner-score" id="winnerScore"></div>
+    </div>
+    <div class="final-lb" id="finalLeaderboard"></div>
+    <button class="btn-gold" onclick="location.reload()">🔄 Main Lagi</button>
+  </div>
+</div>
+
+<script>
+// ===================== DATA SOAL =====================
+const questions = [
+  {
+    level: "Mudah",
+    q: "Secara bahasa, Al-Qur'an berarti …",
+    opts: ["Menulis","Membaca","Menghafal","Mendengar"],
+    ans: 1
+  },
+  {
+    level: "Mudah",
+    q: "Al-Qur'an diturunkan kepada Nabi Muhammad Saw. melalui …",
+    opts: ["Malaikat Mikail","Malaikat Israfil","Malaikat Jibril","Malaikat Izrail"],
+    ans: 2
+  },
+  {
+    level: "Mudah",
+    q: "Berikut ini yang termasuk pengertian adab adalah …",
+    opts: ["Ilmu membaca Al-Qur'an","Tata krama atau etika","Cara menghafal ayat","Hukum bacaan tajwid"],
+    ans: 1
+  },
+  {
+    level: "Sedang",
+    q: "Salah satu adab sebelum membaca Al-Qur'an adalah …",
+    opts: ["Langsung membaca tanpa persiapan","Membersihkan mulut terlebih dahulu","Membaca dengan suara keras","Membaca sambil berjalan"],
+    ans: 1
+  },
+  {
+    level: "Sedang",
+    q: "Perhatikan pernyataan berikut!\n(1) Membaca di tempat bersih\n(2) Membaca di kamar mandi\n(3) Dalam keadaan suci\n(4) Sambil bermain gawai\n\nAdab membaca Al-Qur'an yang benar ditunjukkan oleh nomor …",
+    opts: ["(1) dan (3)","(2) dan (4)","(1) dan (4)","(2) dan (3)"],
+    ans: 0
+  },
+  {
+    level: "Sedang",
+    q: "Membaca ta'awuz sebelum membaca Al-Qur'an bertujuan untuk …",
+    opts: ["Memperindah suara","Menghindari gangguan setan","Mempercepat bacaan","Menghafal ayat"],
+    ans: 1
+  },
+  {
+    level: "Sulit",
+    q: "Yang dimaksud membaca Al-Qur'an dengan tartil adalah …",
+    opts: ["Membaca dengan cepat agar selesai","Membaca dengan suara keras","Membaca perlahan dan tidak terburu-buru","Membaca dengan nada tinggi"],
+    ans: 2
+  },
+  {
+    level: "Sulit",
+    q: "Berikut ini yang bukan termasuk adab membaca Al-Qur'an adalah …",
+    opts: ["Menghadap kiblat saat membaca","Membaca dengan khusyuk","Bercanda saat membaca agar tidak bosan","Meletakkan Al-Qur'an di tempat yang tinggi"],
+    ans: 2
+  },
+  {
+    level: "Sangat Sulit",
+    q: "Seseorang membaca Al-Qur'an dengan tajwid yang benar, tetapi sambil bermain ponsel dan bercanda. Berdasarkan adab membaca Al-Qur'an, sikap tersebut …",
+    opts: ["Sudah benar karena tajwidnya tepat","Kurang tepat karena tidak khusyuk","Benar karena membaca tetap ibadah","Tidak masalah jika tidak mengganggu orang lain"],
+    ans: 1
+  },
+  {
+    level: "Sangat Sulit",
+    q: "Perhatikan hikmah berikut:\n(1) Hati menjadi tenang\n(2) Menambah kekhusyukan\n(3) Bebas melakukan apa saja\n(4) Meningkatkan iman\n\nHikmah menerapkan adab membaca Al-Qur'an ditunjukkan oleh nomor …",
+    opts: ["(1), (2), dan (4)","(1), (2), dan (3)","(2), (3), dan (4)","(1) dan (3)"],
+    ans: 0
+  },
+];
+
+// ===================== STATE =====================
+let state = {
+  currentQ: 0,
+  scores: [0, 0, 0, 0, 0],
+  timerInterval: null,
+  timeLeft: 10,
+  selectedGroup: null,
+  answered: false,
+  totalQ: questions.length,
+};
+
+const TIMER_MAX = 10;
+const CIRCUMFERENCE = 2 * Math.PI * 31; // ~194.78
+
+// ===================== INIT =====================
+function initLeaderboard() {
+  renderLeaderboard();
+  renderGroupButtons();
+}
+
+function renderLeaderboard() {
+  const sorted = state.scores
+    .map((s, i) => ({ name: `Kelompok ${i+1}`, score: s, idx: i }))
+    .sort((a,b) => b.score - a.score);
+
+  const lb = document.getElementById('leaderboard');
+  lb.innerHTML = sorted.map((g, rank) => `
+    <div class="lb-row ${rank===0?'rank-1':''} ${g.idx===state.selectedGroup?'active-group':''}">
+      <span class="lb-rank">${rank===0?'🥇':rank===1?'🥈':rank===2?'🥉':rank+1}</span>
+      <span class="lb-name">${g.name}</span>
+      <span class="lb-score">${g.score}</span>
+    </div>
+  `).join('');
+}
+
+function renderGroupButtons() {
+  const grid = document.getElementById('groupButtons');
+  grid.innerHTML = [1,2,3,4,5].map(n => `
+    <button class="btn-group" onclick="selectGroup(${n-1})">👥 Kelompok ${n}</button>
+  `).join('');
+}
+
+// ===================== QUIZ FLOW =====================
+function startQuiz() {
+  document.getElementById('popupWelcome').classList.add('hidden');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (state.currentQ >= state.totalQ) { endQuiz(); return; }
+
+  state.answered = false;
+  state.selectedGroup = null;
+  const q = questions[state.currentQ];
+
+  // Update progress
+  const pct = (state.currentQ / state.totalQ) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${state.currentQ} / ${state.totalQ}`;
+
+  // Question text
+  const levelColors = { "Mudah": "#22c55e", "Sedang": "#f0b429", "Sulit": "#f97316", "Sangat Sulit": "#ef4444" };
+  const lvlColor = levelColors[q.level] || "#f0b429";
+  document.getElementById('questionNumber').innerHTML =
+    `Soal ${state.currentQ+1} dari ${state.totalQ} &nbsp;<span style="background:${lvlColor}22;border:1px solid ${lvlColor};color:${lvlColor};padding:2px 9px;border-radius:99px;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;">${q.level}</span>`;
+  document.getElementById('questionText').innerHTML = q.q.replace(/\n/g, '<br>');
+
+  // Animate card
+  const card = document.getElementById('questionCard');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'cardIn 0.45s cubic-bezier(.22,1,.36,1)';
+
+  // Options (locked)
+  renderOptions(q, true);
+
+  // Start timer
+  startTimer();
+}
+
+function renderOptions(q, locked) {
+  const letters = ['A','B','C','D'];
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = q.opts.map((opt, i) => `
+    <button class="option-btn ${locked?'':''}${locked?'locked':''}"
+      id="opt-${i}"
+      ${locked?'disabled':''}
+      onclick="answerQuestion(${i})">
+      <span class="opt-letter">${letters[i]}</span>
+      <span>${opt}</span>
+    </button>
+  `).join('');
+
+  document.getElementById('lockedMsg').textContent = locked
+    ? '⏳ Tunggu countdown selesai...'
+    : '👆 Pilih jawaban!';
+}
+
+function unlockOptions() {
+  const q = questions[state.currentQ];
+  renderOptions(q, false);
+}
+
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timeLeft = TIMER_MAX;
+  updateTimerUI(TIMER_MAX);
+
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerUI(state.timeLeft);
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      showGroupPopup();
+    }
+  }, 1000);
+}
+
+function updateTimerUI(t) {
+  document.getElementById('timerNumber').textContent = t;
+  const circle = document.getElementById('timerCircle');
+  const offset = CIRCUMFERENCE - (t / TIMER_MAX) * CIRCUMFERENCE;
+  circle.style.strokeDashoffset = offset;
+  circle.style.stroke = t <= 3 ? 'var(--timer-low)' : 'var(--timer-full)';
+  circle.style.filter = t <= 3
+    ? 'drop-shadow(0 0 8px var(--wrong))'
+    : 'drop-shadow(0 0 6px var(--gold))';
+}
+
+// ===================== GROUP POPUP =====================
+function showGroupPopup() {
+  document.getElementById('popupGroup').classList.remove('hidden');
+}
+
+function selectGroup(idx) {
+  state.selectedGroup = idx;
+  document.getElementById('popupGroup').classList.add('hidden');
+  unlockOptions();
+  document.getElementById('lockedMsg').textContent = `✅ Kelompok ${idx+1} siap menjawab!`;
+}
+
+// ===================== ANSWER =====================
+function answerQuestion(selected) {
+  if (state.answered || state.selectedGroup === null) return;
+  state.answered = true;
+
+  // Disable all buttons
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+  const correct = questions[state.currentQ].ans;
+  const isCorrect = selected === correct;
+
+  document.getElementById(`opt-${selected}`).classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) {
+    document.getElementById(`opt-${correct}`).classList.add('correct');
+  }
+
+  // Scoring
+  const delta = isCorrect ? 10 : -5;
+  state.scores[state.selectedGroup] = Math.max(0, state.scores[state.selectedGroup] + delta);
+
+  renderLeaderboard();
+  showScoreFlash(delta);
+
+  state.currentQ++;
+  setTimeout(() => {
+    document.getElementById('progressFill').style.width = ((state.currentQ) / state.totalQ * 100) + '%';
+    document.getElementById('progressLabel').textContent = `${state.currentQ} / ${state.totalQ}`;
+    loadQuestion();
+  }, 1800);
+}
+
+function showScoreFlash(delta) {
+  const el = document.createElement('div');
+  el.className = `score-flash ${delta > 0 ? 'plus' : 'minus'}`;
+  el.textContent = delta > 0 ? `+${delta}` : `${delta}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+// ===================== END QUIZ =====================
+function endQuiz() {
+  clearInterval(state.timerInterval);
+
+  const sorted = state.scores
+    .map((s, i) => ({ name: `Kelompok ${i+1}`, score: s }))
+    .sort((a,b) => b.score - a.score);
+
+  document.getElementById('winnerName').textContent = sorted[0].name;
+  document.getElementById('winnerScore').textContent = `Skor: ${sorted[0].score} poin`;
+
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  document.getElementById('finalLeaderboard').innerHTML = sorted.map((g, i) => `
+    <div class="final-lb-row ${i===0?'first':''}">
+      <span class="fl-rank">${medals[i]}</span>
+      <span class="fl-name">${g.name}</span>
+      <span class="fl-score">${g.score} poin</span>
+    </div>
+  `).join('');
+
+  document.getElementById('popupEnd').classList.remove('hidden');
+  launchConfetti();
+}
+
+// ===================== CONFETTI =====================
+function launchConfetti() {
+  const colors = ['#ffd700','#c8860a','#f0b429','#fff8e7','#22c55e','#f97316'];
+  const wrap = document.getElementById('confettiWrap');
+  for (let i = 0; i < 90; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetto';
+      c.style.cssText = `
+        left: ${Math.random()*100}%;
+        top: -10px;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        width: ${6+Math.random()*8}px;
+        height: ${6+Math.random()*8}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        animation-duration: ${2.5+Math.random()*2.5}s;
+        animation-delay: 0s;
+        opacity: 0.9;
+      `;
+      wrap.appendChild(c);
+      setTimeout(() => c.remove(), 5500);
+    }, i * 55);
+  }
+}
+
+// ===================== BOOT =====================
+initLeaderboard();
+</script>
+</body>
+</html>
