@@ -59,19 +59,6 @@
     pointer-events: none;
     z-index: 0;
   }
-  .particle {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--gold-bright), transparent);
-    animation: floatParticle linear infinite;
-    opacity: 0;
-  }
-  @keyframes floatParticle {
-    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
-    10%  { opacity: 0.6; }
-    90%  { opacity: 0.3; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-  }
 
   /* ===== PAGE 1 – LANDING ===== */
   #page1 {
@@ -292,7 +279,36 @@
   }
   .menu-btn:hover::after { opacity: 1; }
 
-  /* ===== MODAL ===== */
+  /* ===== GAME BUTTON — khusus style beda ===== */
+  .menu-btn-game {
+    background: linear-gradient(135deg, rgba(20,10,2,0.92), rgba(10,6,2,0.88));
+    border-color: rgba(255, 180, 0, 0.8);
+    color: var(--gold-bright);
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+    box-shadow: 0 0 30px rgba(255,180,0,0.3), inset 0 1px 0 rgba(255,215,0,0.15);
+  }
+  .menu-btn-game:hover {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(201,151,58,0.08));
+    box-shadow: 0 0 60px rgba(255,215,0,0.7), 0 8px 35px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,215,0,0.25);
+  }
+
+  /* ===== DISKUSI BUTTON — accent warna berbeda ===== */
+  .menu-btn-diskusi {
+    background: linear-gradient(135deg, rgba(5,15,20,0.92), rgba(2,10,14,0.88));
+    border-color: rgba(100, 200, 255, 0.45);
+    color: #a8d8f0;
+    text-shadow: 0 0 10px rgba(100,200,255,0.4);
+    box-shadow: 0 0 25px rgba(100,200,255,0.15), inset 0 1px 0 rgba(100,200,255,0.1);
+  }
+  .menu-btn-diskusi:hover {
+    border-color: rgba(150, 220, 255, 0.85);
+    color: #c8eaff;
+    text-shadow: 0 0 14px rgba(150,220,255,0.7);
+    box-shadow: 0 0 50px rgba(100,200,255,0.5), 0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(150,220,255,0.2);
+    background: linear-gradient(135deg, rgba(100,200,255,0.1), rgba(50,150,200,0.05));
+  }
+
+  /* ===== MODAL (materi) ===== */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -452,6 +468,87 @@
     opacity: 0.4;
   }
 
+  /* ===== DISKUSI FULLSCREEN OVERLAY ===== */
+  #diskusiOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    background: rgba(0,0,0,0.96);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+    flex-direction: column;
+  }
+  #diskusiOverlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .diskusi-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(8,5,2,0.85);
+    border: 1.5px solid rgba(100,200,255,0.5);
+    color: #a8d8f0;
+    font-size: 1.4rem;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    z-index: 10;
+    box-shadow: 0 0 18px rgba(100,200,255,0.25);
+  }
+  .diskusi-close:hover {
+    background: rgba(100,200,255,0.15);
+    border-color: #7dd8ff;
+    color: #c8eaff;
+    box-shadow: 0 0 30px rgba(100,200,255,0.5);
+    transform: scale(1.1);
+  }
+
+  .diskusi-img-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 2rem 2rem;
+  }
+
+  .diskusi-img-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 0 60px rgba(100,200,255,0.2), 0 0 120px rgba(100,200,255,0.08);
+    transform: scale(0.9);
+    transition: transform 0.5s cubic-bezier(0.23,1,0.32,1);
+  }
+  #diskusiOverlay.open .diskusi-img-wrapper img {
+    transform: scale(1);
+  }
+
+  .diskusi-label {
+    position: absolute;
+    bottom: 1.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    color: rgba(168,216,240,0.5);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
   /* ===== FOOTER ===== */
   .site-footer {
     text-align: center;
@@ -462,12 +559,6 @@
     border-top: 1px solid rgba(201,151,58,0.12);
     position: relative;
     z-index: 1;
-  }
-
-  /* ===== GLOW PULSE ===== */
-  @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 25px rgba(255,215,0,0.3); }
-    50%       { box-shadow: 0 0 55px rgba(255,215,0,0.7), 0 0 90px rgba(255,215,0,0.25); }
   }
 
   /* ===== RESPONSIVE ===== */
@@ -521,13 +612,15 @@
       <button class="menu-btn" onclick="openModal('pengertian')">📖 Pengertian</button>
       <button class="menu-btn" onclick="openModal('adab')">🌿 Adab</button>
       <button class="menu-btn" onclick="openModal('hikmah')">✨ Hikmah</button>
+      <button class="menu-btn menu-btn-diskusi" onclick="openDiskusi()">💬 Diskusi</button>
+      <button class="menu-btn menu-btn-game" onclick="goToGame()">🎮 Game</button>
     </div>
   </div>
 
   <footer class="site-footer">© Moh. Ainun Najib — UIN Sunan Kudus &nbsp;|&nbsp; MTs Nasyrul Ulum</footer>
 </div>
 
-<!-- ===== MODAL ===== -->
+<!-- ===== MODAL (MATERI) ===== -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
   <div class="modal-box" id="modalBox">
     <div class="modal-header">
@@ -536,6 +629,15 @@
     </div>
     <div class="modal-body" id="modalContent"></div>
   </div>
+</div>
+
+<!-- ===== DISKUSI FULLSCREEN OVERLAY ===== -->
+<div id="diskusiOverlay">
+  <button class="diskusi-close" onclick="closeDiskusi()" title="Tutup">✕</button>
+  <div class="diskusi-img-wrapper">
+    <img src="illustrasi.png" alt="Ilustrasi Diskusi Adab Membaca Al-Qur'an">
+  </div>
+  <div class="diskusi-label">Tekan ESC atau ✕ untuk menutup</div>
 </div>
 
 <script>
@@ -602,6 +704,22 @@ function goToPage2() {
   const p2 = document.getElementById('page2');
   p2.classList.add('active');
   p2.style.animation = 'fadeInUp 0.7s ease both';
+}
+
+function goToGame() {
+  window.location.href = 'game.html';
+}
+
+/* ===== DISKUSI ===== */
+function openDiskusi() {
+  const overlay = document.getElementById('diskusiOverlay');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDiskusi() {
+  document.getElementById('diskusiOverlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 /* ===== MODAL DATA ===== */
@@ -682,7 +800,12 @@ function closeModalOutside(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModal();
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeDiskusi();
+  }
+});
 </script>
 </body>
 </html>
